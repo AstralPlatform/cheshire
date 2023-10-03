@@ -9,7 +9,7 @@
 `include "phy_definitions.svh"
 `include "common_cells/registers.svh"
 
-module dram_wrapper #(
+module dram_wrapper_xilinx #(
     parameter type axi_soc_aw_chan_t = logic,
     parameter type axi_soc_w_chan_t  = logic,
     parameter type axi_soc_b_chan_t  = logic,

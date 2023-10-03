@@ -23,6 +23,8 @@
   `define USE_DDR3
   `define USE_FAN
   `define USE_VIO
+  `define USE_I2C
+  `define USE_VGA
 `endif
 
 `ifdef TARGET_ZCU102

@@ -297,7 +297,7 @@ module cheshire_top_xilinx
   //////////////
 
 `ifdef USE_DDR
-  dram_wrapper #(
+  dram_wrapper_xilinx #(
     .axi_soc_aw_chan_t ( axi_llc_aw_chan_t ),
     .axi_soc_w_chan_t  ( axi_llc_w_chan_t  ),
     .axi_soc_b_chan_t  ( axi_llc_b_chan_t  ),

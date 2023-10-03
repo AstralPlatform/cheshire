@@ -63,8 +63,8 @@ set_max_delay -datapath \
 # VGA #
 #######
 
-# set_output_delay -min -clock $soc_clk [expr $SOC_TCK * 0.10] [get_ports vga*]
-# set_output_delay -max -clock $soc_clk [expr $SOC_TCK * 0.35] [get_ports vga*]
+set_output_delay -min -clock $soc_clk [expr $SOC_TCK * 0.10] [get_ports vga*]
+set_output_delay -max -clock $soc_clk [expr $SOC_TCK * 0.35] [get_ports vga*]
 
 ############
 # Switches #
@@ -95,11 +95,11 @@ set_output_delay -max -clock $soc_clk [expr 0.20 * $SOC_TCK] [get_ports {sd_d_* 
 # I2C #
 #######
 
-# set_max_delay [expr $I2C_IO_SPEED * 0.35] -from [get_ports {i2c_scl_io i2c_sda_io}]
-# set_false_path -hold -from [get_ports {i2c_scl_io i2c_sda_io}]
+set_max_delay [expr $I2C_IO_SPEED * 0.35] -from [get_ports {i2c_scl_io i2c_sda_io}]
+set_false_path -hold -from [get_ports {i2c_scl_io i2c_sda_io}]
 
-# set_max_delay [expr $I2C_IO_SPEED * 0.35] -to [get_ports {i2c_scl_io i2c_sda_io}]
-# set_false_path -hold -to [get_ports {i2c_scl_io i2c_sda_io}]
+set_max_delay [expr $I2C_IO_SPEED * 0.35] -to [get_ports {i2c_scl_io i2c_sda_io}]
+set_false_path -hold -to [get_ports {i2c_scl_io i2c_sda_io}]
 
 #################################################################################
 
@@ -188,27 +188,27 @@ set_property -dict { PACKAGE_PIN R28   IOSTANDARD LVCMOS33 } [get_ports { sd_scl
 #set_property -dict { PACKAGE_PIN AK14  IOSTANDARD LVCMOS15 } [get_ports { ETH_TX_EN }]; #IO_L20P_T3_33 Sch=eth_tx_en
 
 ## VGA Connector
-# set_property -dict { PACKAGE_PIN AH20  IOSTANDARD LVCMOS33 } [get_ports { vga_b[0] }]; #IO_L22N_T3_12 Sch=vga_b[3]
-# set_property -dict { PACKAGE_PIN AG20  IOSTANDARD LVCMOS33 } [get_ports { vga_b[1] }]; #IO_L22P_T3_12 Sch=vga_b[4]
-# set_property -dict { PACKAGE_PIN AF21  IOSTANDARD LVCMOS33 } [get_ports { vga_b[2] }]; #IO_L19N_T3_VREF_12 Sch=vga_b[5]
-# set_property -dict { PACKAGE_PIN AK20  IOSTANDARD LVCMOS33 } [get_ports { vga_b[3] }]; #IO_L24P_T3_12 Sch=vga_b[6]
-# set_property -dict { PACKAGE_PIN AG22  IOSTANDARD LVCMOS33 } [get_ports { vga_b[4] }]; #IO_L20P_T3_12 Sch=vga_b[7]
+set_property -dict { PACKAGE_PIN AH20  IOSTANDARD LVCMOS33 } [get_ports { vga_b[0] }]; #IO_L22N_T3_12 Sch=vga_b[3]
+set_property -dict { PACKAGE_PIN AG20  IOSTANDARD LVCMOS33 } [get_ports { vga_b[1] }]; #IO_L22P_T3_12 Sch=vga_b[4]
+set_property -dict { PACKAGE_PIN AF21  IOSTANDARD LVCMOS33 } [get_ports { vga_b[2] }]; #IO_L19N_T3_VREF_12 Sch=vga_b[5]
+set_property -dict { PACKAGE_PIN AK20  IOSTANDARD LVCMOS33 } [get_ports { vga_b[3] }]; #IO_L24P_T3_12 Sch=vga_b[6]
+set_property -dict { PACKAGE_PIN AG22  IOSTANDARD LVCMOS33 } [get_ports { vga_b[4] }]; #IO_L20P_T3_12 Sch=vga_b[7]
 
-# set_property -dict { PACKAGE_PIN AJ23  IOSTANDARD LVCMOS33 } [get_ports { vga_g[0] }]; #IO_L21N_T3_DQS_12 Sch=vga_g[2]
-# set_property -dict { PACKAGE_PIN AJ22  IOSTANDARD LVCMOS33 } [get_ports { vga_g[1] }]; #IO_L21P_T3_DQS_12 Sch=vga_g[3]
-# set_property -dict { PACKAGE_PIN AH22  IOSTANDARD LVCMOS33 } [get_ports { vga_g[2] }]; #IO_L20N_T3_12 Sch=vga_g[4]
-# set_property -dict { PACKAGE_PIN AK21  IOSTANDARD LVCMOS33 } [get_ports { vga_g[3] }]; #IO_L24N_T3_12 Sch=vga_g[5]
-# set_property -dict { PACKAGE_PIN AJ21  IOSTANDARD LVCMOS33 } [get_ports { vga_g[4] }]; #IO_L23N_T3_12 Sch=vga_g[6]
-# set_property -dict { PACKAGE_PIN AK23  IOSTANDARD LVCMOS33 } [get_ports { vga_g[5] }]; #IO_L17P_T2_12 Sch=vga_g[7]
+set_property -dict { PACKAGE_PIN AJ23  IOSTANDARD LVCMOS33 } [get_ports { vga_g[0] }]; #IO_L21N_T3_DQS_12 Sch=vga_g[2]
+set_property -dict { PACKAGE_PIN AJ22  IOSTANDARD LVCMOS33 } [get_ports { vga_g[1] }]; #IO_L21P_T3_DQS_12 Sch=vga_g[3]
+set_property -dict { PACKAGE_PIN AH22  IOSTANDARD LVCMOS33 } [get_ports { vga_g[2] }]; #IO_L20N_T3_12 Sch=vga_g[4]
+set_property -dict { PACKAGE_PIN AK21  IOSTANDARD LVCMOS33 } [get_ports { vga_g[3] }]; #IO_L24N_T3_12 Sch=vga_g[5]
+set_property -dict { PACKAGE_PIN AJ21  IOSTANDARD LVCMOS33 } [get_ports { vga_g[4] }]; #IO_L23N_T3_12 Sch=vga_g[6]
+set_property -dict { PACKAGE_PIN AK23  IOSTANDARD LVCMOS33 } [get_ports { vga_g[5] }]; #IO_L17P_T2_12 Sch=vga_g[7]
 
-# set_property -dict { PACKAGE_PIN AK25  IOSTANDARD LVCMOS33 } [get_ports { vga_r[0] }]; #IO_L15N_T2_DQS_12 Sch=vga_r[3]
-# set_property -dict { PACKAGE_PIN AG25  IOSTANDARD LVCMOS33 } [get_ports { vga_r[1] }]; #IO_L18P_T2_12 Sch=vga_r[4]
-# set_property -dict { PACKAGE_PIN AH25  IOSTANDARD LVCMOS33 } [get_ports { vga_r[2] }]; #IO_L18N_T2_12 Sch=vga_r[5]
-# set_property -dict { PACKAGE_PIN AK24  IOSTANDARD LVCMOS33 } [get_ports { vga_r[3] }]; #IO_L17N_T2_12 Sch=vga_r[6]
-# set_property -dict { PACKAGE_PIN AJ24  IOSTANDARD LVCMOS33 } [get_ports { vga_r[4] }]; #IO_L15P_T2_DQS_12 Sch=vga_r[7]
+set_property -dict { PACKAGE_PIN AK25  IOSTANDARD LVCMOS33 } [get_ports { vga_r[0] }]; #IO_L15N_T2_DQS_12 Sch=vga_r[3]
+set_property -dict { PACKAGE_PIN AG25  IOSTANDARD LVCMOS33 } [get_ports { vga_r[1] }]; #IO_L18P_T2_12 Sch=vga_r[4]
+set_property -dict { PACKAGE_PIN AH25  IOSTANDARD LVCMOS33 } [get_ports { vga_r[2] }]; #IO_L18N_T2_12 Sch=vga_r[5]
+set_property -dict { PACKAGE_PIN AK24  IOSTANDARD LVCMOS33 } [get_ports { vga_r[3] }]; #IO_L17N_T2_12 Sch=vga_r[6]
+set_property -dict { PACKAGE_PIN AJ24  IOSTANDARD LVCMOS33 } [get_ports { vga_r[4] }]; #IO_L15P_T2_DQS_12 Sch=vga_r[7]
 
-# set_property -dict { PACKAGE_PIN AF20  IOSTANDARD LVCMOS33 } [get_ports { vga_hs }]; #IO_L19P_T3_12 Sch=vga_hs
-# set_property -dict { PACKAGE_PIN AG23  IOSTANDARD LVCMOS33 } [get_ports { vga_vs }]; #IO_L13N_T2_MRCC_12 Sch=vga_vs
+set_property -dict { PACKAGE_PIN AF20  IOSTANDARD LVCMOS33 } [get_ports { vga_hs }]; #IO_L19P_T3_12 Sch=vga_hs
+set_property -dict { PACKAGE_PIN AG23  IOSTANDARD LVCMOS33 } [get_ports { vga_vs }]; #IO_L13N_T2_MRCC_12 Sch=vga_vs
 
 ## HDMI in
 #set_property -dict { PACKAGE_PIN Y21   IOSTANDARD LVCMOS33 } [get_ports { hdmi_rx_cec }]; #IO_L2P_T0_12 Sch=hdmi_rx_cec
@@ -506,8 +506,8 @@ set_property -dict { PACKAGE_PIN Y29   IOSTANDARD LVCMOS33 } [get_ports { jtag_t
 #set_property -dict { PACKAGE_PIN R21   IOSTANDARD LVCMOS33 } [get_ports { QSPI_D[3] }]; #IO_L2N_T0_D03_14 Sch=qspi_d[3]
 
 ## IIC Bus
-# set_property -dict { PACKAGE_PIN AE30  IOSTANDARD LVCMOS33 } [get_ports { i2c_scl_io }]; #IO_L16P_T2_13 Sch=sys_scl
-# set_property -dict { PACKAGE_PIN AF30  IOSTANDARD LVCMOS33 } [get_ports { i2c_sda_io }]; #IO_L16N_T2_13 Sch=sys_sda
+set_property -dict { PACKAGE_PIN AE30  IOSTANDARD LVCMOS33 } [get_ports { i2c_scl_io }]; #IO_L16P_T2_13 Sch=sys_scl
+set_property -dict { PACKAGE_PIN AF30  IOSTANDARD LVCMOS33 } [get_ports { i2c_sda_io }]; #IO_L16N_T2_13 Sch=sys_sda
 
 ## Display Port IN
 #set_property -dict { PACKAGE_PIN AC19  IOSTANDARD LVCMOS18 } [get_ports { RX_AUX_IN_CH_N }]; #IO_L17N_T2_32 Sch=rx_aux_ch_n

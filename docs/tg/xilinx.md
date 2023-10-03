@@ -7,6 +7,7 @@ This page describes how to map Cheshire on Xilinx FPGAs to *execute baremetal pr
 We currently provide working setups for:
 
 - Digilent Genesys 2 with Vivado `>= 2020.2`
+- Xilinx VCU128 with Vivado `>= 2020.2`
 
 We are working on support for more boards in the future.
 
@@ -19,8 +20,13 @@ Since the implementation steps and available features vary between boards, we pr
 Generate the bitstream `target/xilinx/out/cheshire_top_xilinx.bit` by running:
 
 ```
-make -C target/xilinx
+make chs-xil-all BOARD=genesys2 MODE=[batch,gui]
 ```
+
+See the argument list below:
+
+* `VIVADO`: The Vivado version to use (see default in `target/xilinx/xilinx.mk`)
+* `MODE`: If 'batch', compile in shell, if 'gui', Open Vivado GUI.
 
 Before flashing the bitstream to your device, take note of the position of onboard switches, which control important functionality:
 
@@ -32,6 +38,37 @@ Before flashing the bitstream to your device, take note of the position of onboa
   | 7      | Test mode; *leave at zero*                      |
 
 The reset, JTAG TAP, UART, I2C, and VGA are all connected to their onboard logic or ports. The UART has *no flow control*. The microSD slot is connected to chip select 0 of the SPI host peripheral. Serial link and GPIOs are currently not available.
+
+### Xilinx VCU128
+
+Generate the bitstream `target/xilinx/out/cheshire_top_xilinx.bit` by running:
+
+```
+make chs-xil-all BOARD=vcu128 MODE=[batch,gui] INT-JTAG=[0,1]
+```
+
+See the argument list below:
+
+* `INT-JTAG`: If 1, use an external JTAG chain (we use a Digilent JTAG-HS2 cable connected to the Xilinx XM105 FMC debug card). See the connections in `vcu128.xdc`.
+
+
+As there are no switches on this board, the bootmode is selected by VIO (see next section).
+
+## Using the Vivado GUI
+
+Even after implementing your system in batch mode, you can open the Vivado GUI with:
+
+```
+make chs-xil-gui
+```
+
+In particular, it will give you access the to Virtual Inputs Outputs (VIOs) after flashing/refreshing the FPGA:
+
+  | VIO               | Function                                                        |
+  | ----------------- | ----------------------------------------------------------------|
+  | vio_reset         | Positive edge-sensitive reset for the whole system              |
+  | vio_boot_mode     | Override the boot-mode switches described above                 |
+  | vio_boot_mode_sel | Select between 0: using boot mode switches 1: use boot mode VIO |
 
 ## Debugging with OpenOCD
 
@@ -86,7 +123,7 @@ First, build an up-to-date a disk image for your desired binary. For `helloworld
 make sw/tests/helloworld.gpt.bin
 ```
 
-Then flash this image to an SD card (*note that this requires root privileges*):
+Then flash this image to an SD card (for Genesys2) (*note that this requires root privileges*):
 
 ```
 sudo dd if=sw/tests/helloworld.gpt.bin of=/dev/<sdcard>
@@ -115,8 +152,11 @@ In this case, OpenSBI is loaded by a regular baremetal program called the [Zero-
 To create a full Linux disk image from the ZSL, device tree, firmware, and Linux, run:
 
 ```
-make sw/boot/linux.gpt.bin
+# Note that the device tree depends from the board's peripherals
+make chs-linux-img BOARD=[genesys2, vcu128]
 ```
+
+### Digilent Genesys 2
 
 Flash this image to an SD card as you did in the previous section, then insert the SD card and reset into boot mode 1. You should first see the ZSL print on the UART:
 
@@ -131,3 +171,19 @@ Flash this image to an SD card as you did in the previous section, then insert t
 (           ))))))))))
 ```
 You should then boot through OpenSBI, U-Boot, and Linux until you are dropped into a shell.
+
+### Xilinx VCU128
+
+This board does not offer a SD card reader. We use the integrated flash:
+
+```
+make chs-xil-flash MODE=batch BOARD=vcu128
+```
+
+Use the following parameters (defaults are in `target/xilinx/xilinx.mk`) to select your board:
+
+* XILINX_PART  : The FPGA part (leave to default)
+* XILINX_BOARD : The FPGA board (leave to default)
+* XILINX_HOST  : The server where your board is connected (or localhost)
+* XILINX_PORT  : The port opened by Vivado for your board (Vivado usually sets it to 3121)
+* VIVADO_PATH  : The path to your board as seen in the Vivado Hardware Manager (usually xilinx_tcf/Xilinx/`SerialID`)
