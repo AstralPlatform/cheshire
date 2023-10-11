@@ -554,6 +554,8 @@ module cheshire_top_xilinx
     .jtag_tms_i,
     .jtag_tdi_i,
     .jtag_tdo_o,
+    // TODO: connect to the tdo pad
+    .jtag_tdo_oe_o( ),
 `endif
 // I2C Uses internal signals that are always defined
     .i2c_sda_o            ( i2c_sda_soc_out       ),
