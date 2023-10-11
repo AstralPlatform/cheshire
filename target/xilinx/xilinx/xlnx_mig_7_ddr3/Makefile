@@ -4,5 +4,6 @@
 
 PROJECT:=xlnx_mig_7_ddr3
 ARTIFACTS_IN:=Makefile tcl/run.tcl mig_genesys2.prj mig_kc705.prj mig_vc707.prj
+ARTIFACTS_VARS:=XILINX_PART XILINX_BOARD BOARD
 
 include ../common.mk
