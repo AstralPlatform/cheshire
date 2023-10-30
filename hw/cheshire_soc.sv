@@ -1361,6 +1361,67 @@ module cheshire_soc import cheshire_pkg::*; #(
   end
 
   ///////////
+  //  USB  //
+  ///////////
+
+  if (Cfg.Usb) begin : gen_usb
+    axi_slv_req_t usb_ctrl_req;  // Define req and rsp ports for ctrl
+    axi_slv_rsp_t usb_ctrl_rsp;  // ports of the controller?
+    axi_mst_req_t usb_dma_req;   // Request port for dma?
+    axi_mst_rsp_t usb_dma_rsp;   // Response port for dma?
+
+    // Add AXI Atomics struct, I am not sure if this is neccessary. Purpose not fully clear
+    axi_riscv_atomics_structs #(
+      .AxiAddrWidth     ( Cfg.AddrWidth    ),
+      .AxiDataWidth     ( Cfg.AxiDataWidth ),
+      .AxiIdWidth       ( AxiSlvIdWidth    ),
+      .AxiUserWidth     ( Cfg.AxiUserWidth ),
+      .AxiMaxReadTxns   ( Cfg.DmaConfMaxReadTxns  ),
+      .AxiMaxWriteTxns  ( Cfg.DmaConfMaxWriteTxns ),
+      .AxiUserAsId      ( 1 ),
+      .AxiUserIdMsb     ( Cfg.AxiUserAmoMsb ),
+      .AxiUserIdLsb     ( Cfg.AxiUserAmoLsb ),
+      .RiscvWordWidth   ( 64 ),
+      .NAxiCuts         ( Cfg.DmaConfAmoNumCuts ),
+      .axi_req_t        ( axi_slv_req_t ),
+      .axi_rsp_t        ( axi_slv_rsp_t )
+    ) i_usb_conf_atomics (
+      .clk_i,
+      .rst_ni,
+      .axi_slv_req_i ( axi_out_req[AxiOut.usb] ),
+      .axi_slv_rsp_o ( axi_out_rsp[AxiOut.usb] ),
+      .axi_mst_req_o ( usb_ctrl_req ), // We connect the slave ports to the master I/O?
+      .axi_mst_rsp_i ( usb_ctrl_rsp )
+    );
+
+    // These look like the correct channels. But how do I connect the ones from the Verilog?
+    axi_cut #(
+      .Bypass     ( ~Cfg.DmaConfAmoPostCut ),
+      .aw_chan_t  ( axi_slv_aw_chan_t ),
+      .w_chan_t   ( axi_slv_w_chan_t  ),
+      .b_chan_t   ( axi_slv_b_chan_t  ),
+      .ar_chan_t  ( axi_slv_ar_chan_t ),
+      .r_chan_t   ( axi_slv_r_chan_t  ),
+      .axi_req_t  ( axi_slv_req_t ),
+      .axi_resp_t ( axi_slv_rsp_t )
+    ) i_usb_conf_atomics_cut (
+      .clk_i,
+      .rst_ni,
+      .slv_req_i  ( dma_amo_req ),
+      .slv_resp_o ( dma_amo_rsp ),
+      .mst_req_o  ( dma_cut_req ),
+      .mst_resp_i ( dma_cut_rsp )
+    );
+
+    always_comb begin
+      axi_in_req[AxiIn.usb]         = usb_dma_req;
+      axi_in_req[AxiIn.usb].aw.user = Cfg.AxiUserDefault;
+      axi_in_req[AxiIn.usb].w.user  = Cfg.AxiUserDefault;
+      axi_in_req[AxiIn.usb].ar.user = Cfg.AxiUserDefault;
+    end
+  end
+
+  ///////////
   //  DMA  //
   ///////////
 
