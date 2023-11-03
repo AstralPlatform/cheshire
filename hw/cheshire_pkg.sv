@@ -171,7 +171,15 @@ package cheshire_pkg;
     doub_bt SlinkTxAddrDomain;
     dw_bt   SlinkUserAmoBit;
     // Parameters for USB
-
+    dw_bt   UsbConfMaxReadTxns;
+    dw_bt   UsbConfMaxWriteTxns;
+    aw_bt   UsbConfAmoNumCuts;
+    bit     UsbConfAmoPostCut;
+    bit     UsbConfEnableTwoD;
+    dw_bt   UsbNumAxInFlight;
+    dw_bt   UsbMemSysDepth;
+    aw_bt   UsbJobFifoDepth;
+    bit     UsbRAWCouplingAvail;
     // Parameters for DMA
     dw_bt   DmaConfMaxReadTxns;
     dw_bt   DmaConfMaxWriteTxns;
@@ -351,7 +359,8 @@ package cheshire_pkg;
       r++; ret.map[r] = '{i, AmSpm, AmSpm + SizeSpm};
       r++; ret.map[r] = '{i, AmSpm + 'h0400_0000, AmSpm + 'h0400_0000 + SizeSpm};
     end
-    if (cfg.Usb)          begin i++; r++; ret.usb = i; ret.map[r] = '{i, 'h0100_1000, 'h0100_1800}; end //USB requires 2KB of 32bit aligned memory, it seems like the exact position in memory is not important
+    //USB requires 2KB of 32bit aligned memory, it seems like the exact position in memory is not important
+    if (cfg.Usb)          begin i++; r++; ret.usb = i; ret.map[r] = '{i, 'h0100_1000, 'h0100_2000}; end // Give it a 4K window (as Paul suggested)
     if (cfg.Dma)          begin i++; r++; ret.dma = i; ret.map[r] = '{i, 'h0100_0000, 'h0100_1000}; end
     if (cfg.SerialLink)   begin i++; r++; ret.slink = i;
         ret.map[r] = '{i, cfg.SlinkRegionStart, cfg.SlinkRegionEnd}; end
@@ -592,8 +601,16 @@ package cheshire_pkg;
     SlinkTxAddrMask   : 'hFFFF_FFFF,
     SlinkTxAddrDomain : 'h0000_0000,
     SlinkUserAmoBit   : 1,  // Convention: lower AMO bits for cores, MSB for serial link
-    // USB config
-    // Are there parameters which we should define here, unsure
+    // USB config ( for now it's just a copy of the DMA config)
+    UsbConfMaxReadTxns  : 4,
+    UsbConfMaxWriteTxns : 4,
+    UsbConfAmoNumCuts   : 1,
+    UsbConfAmoPostCut   : 1,
+    UsbConfEnableTwoD   : 1,
+    UsbNumAxInFlight    : 16,
+    UsbMemSysDepth      : 8,
+    UsbJobFifoDepth     : 2,
+    UsbRAWCouplingAvail : 1,
     // DMA config
     DmaConfMaxReadTxns  : 4,
     DmaConfMaxWriteTxns : 4,
