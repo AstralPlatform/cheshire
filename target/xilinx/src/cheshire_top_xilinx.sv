@@ -64,6 +64,9 @@ module cheshire_top_xilinx
   // VGA Sync signals
   output logic        vga_hs,
   output logic        vga_vs
+
+  // USB output wires
+
 );
 
   // Configure cheshire for FPGA mapping
@@ -101,6 +104,7 @@ module cheshire_top_xilinx
     I2c               : 1,
     SpiHost           : 1,
     Gpio              : 1,
+    Usb               : 1,
     Dma               : 1,
     SerialLink        : 0,
     Vga               : 1,
@@ -148,6 +152,16 @@ module cheshire_top_xilinx
     DmaMemSysDepth      : 8,
     DmaJobFifoDepth     : 2,
     DmaRAWCouplingAvail : 1,
+    // USB config (for now this is just a copy of the DMA config)
+    UsbConfMaxReadTxns  : 4,
+    UsbConfMaxWriteTxns : 4,
+    UsbConfAmoNumCuts   : 1,
+    UsbConfAmoPostCut   : 1,
+    UsbConfEnableTwoD   : 1,
+    UsbNumAxInFlight    : 16,
+    UsbMemSysDepth      : 8,
+    UsbJobFifoDepth     : 2,
+    UsbRAWCouplingAvail : 1,
     // GPIOs
     GpioInputSyncs    : 1,
     // All non-set values should be zero

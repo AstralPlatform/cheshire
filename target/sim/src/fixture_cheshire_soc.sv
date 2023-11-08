@@ -49,6 +49,13 @@ module fixture_cheshire_soc #(
   logic i2c_scl_i;
   logic i2c_scl_en;
 
+  logic usb_dp_i;
+  logic usb_dp_o;
+  logic usb_dp_en_o;
+  logic usb_dm_i;
+  logic usb_dm_o;
+  logic usb_dm_en_o;
+
   logic                 spih_sck_o;
   logic                 spih_sck_en;
   logic [SpihNumCs-1:0] spih_csb_o;
@@ -115,6 +122,12 @@ module fixture_cheshire_soc #(
     .i2c_scl_o          ( i2c_scl_o  ),
     .i2c_scl_i          ( i2c_scl_i  ),
     .i2c_scl_en_o       ( i2c_scl_en ),
+    .usb_dp_i           ( usb_dp_i    ),
+    .usb_dp_o           ( usb_dp_o    ),
+    .usb_dp_en_o        ( usb_dp_en_o ),
+    .usb_dm_i           ( usb_dm_i    ),
+    .usb_dm_o           ( usb_dm_o    ),
+    .usb_dm_en_o        ( usb_dm_en_o ),
     .spih_sck_o         ( spih_sck_o  ),
     .spih_sck_en_o      ( spih_sck_en ),
     .spih_csb_o         ( spih_csb_o  ),
