@@ -1546,21 +1546,21 @@ module cheshire_soc import cheshire_pkg::*; #(
       //usb_ctrl_req.aw.user  = Cfg.AxiUserDefault;
       //usb_ctrl_req.w.user   = Cfg.AxiUserDefault;
       //usb_ctrl_req.ar.user  = Cfg.AxiUserDefault;
-      usb_ctrl_rsp.r.user   = Cfg.AxiUserDefault;
-      usb_ctrl_rsp.b.user   = Cfg.AxiUserDefault;
+      //usb_ctrl_rsp.r.user   = Cfg.AxiUserDefault;
+      //usb_ctrl_rsp.b.user   = Cfg.AxiUserDefault;
       // DMA connections
-      usb_dma_req.aw.id     = 0;
-      usb_dma_req.aw.burst  = 0;
-      usb_dma_req.aw.lock   = 0;
-      usb_dma_req.aw.qos    = 0;
-      usb_dma_req.aw.region = 0;
-      usb_dma_req.aw.user   = Cfg.AxiUserDefault;
-      usb_dma_req.w.user    = Cfg.AxiUserDefault;
-      usb_dma_req.ar.id     = 0;
-      usb_dma_req.ar.burst  = 0;
-      usb_dma_req.ar.qos    = 0;
-      usb_dma_req.ar.region = 0;
-      usb_dma_req.ar.user   = Cfg.AxiUserDefault;
+      //usb_dma_req.aw.id     = 0;
+      //usb_dma_req.aw.burst  = 0;
+      //usb_dma_req.aw.lock   = 0;
+      //usb_dma_req.aw.qos    = 0;
+      //usb_dma_req.aw.region = 0;
+      //usb_dma_req.aw.user   = Cfg.AxiUserDefault;
+      //usb_dma_req.w.user    = Cfg.AxiUserDefault;
+      //usb_dma_req.ar.id     = 0;
+      //usb_dma_req.ar.burst  = 0;
+      //usb_dma_req.ar.qos    = 0;
+      //usb_dma_req.ar.region = 0;
+      //usb_dma_req.ar.user   = Cfg.AxiUserDefault;
       //usb_dma_rsp.r.id      = 0;
       //usb_dma_rsp.r.user    = Cfg.AxiUserDefault;
       //usb_dma_rsp.b.id      = 0;
@@ -1647,10 +1647,6 @@ module cheshire_soc import cheshire_pkg::*; #(
       .ctrl_reset               ( rst_ni                 )
     );
 
-  end
-
-  if (!(Cfg.Usb && Cfg.BusErr)) begin : gen_usb_bus_err_tie
-    assign intr.intn.bus_err.usb = '0;
   end
 
   ///////////
