@@ -1373,8 +1373,8 @@ module cheshire_soc import cheshire_pkg::*; #(
   `CHESHIRE_TYPEDEF_AXI_CT(axi_usb_ctrl_dw, addr_t, logic [7:0], logic [31:0], logic [3:0], axi_user_t)
   `CHESHIRE_TYPEDEF_AXI_CT(axi_usb_ctrl, logic [11:0], logic [7:0], logic [31:0], logic [3:0], axi_user_t)
   // For the dma converter chain
-  `CHESHIRE_TYPEDEF_AXI_CT(axi_usb_dma, logic [31:0], logic [AxiSlvIdWidth-1:0], logic [31:0], logic [3:0], axi_user_t)
-  `CHESHIRE_TYPEDEF_AXI_CT(axi_usb_dma_dw, logic [31:0], logic [AxiSlvIdWidth-1:0], axi_data_t, axi_strb_t, axi_user_t)
+  `CHESHIRE_TYPEDEF_AXI_CT(axi_usb_dma, logic [31:0], logic [Cfg.AxiMstIdWidth-1:0], logic [31:0], logic [3:0], axi_user_t)
+  `CHESHIRE_TYPEDEF_AXI_CT(axi_usb_dma_dw, logic [31:0], logic [Cfg.AxiMstIdWidth-1:0], axi_data_t, axi_strb_t, axi_user_t)
 
   if (Cfg.Usb) begin : gen_usb
     axi_slv_req_t usb_amo_req, usb_cut_req; // AXI interconnect for atomics and cuts
@@ -1528,14 +1528,14 @@ module cheshire_soc import cheshire_pkg::*; #(
     axi_modify_address #(
       .slv_req_t  ( axi_usb_dma_dw_req_t ),
       .mst_req_t  ( axi_mst_req_t ),
-      .mst_addr_t ( logic [31:0] ),
-      .axi_resp_t ( axi_usb_dma_dw_rsp_t )
+      .mst_addr_t ( addr_t ),
+      .axi_resp_t ( axi_mst_rsp_t )
     ) i_usb_dma_modify_address (
       .slv_req_i    ( usb_dma_dw_req ),
       .slv_resp_o   ( usb_dma_dw_rsp ),
       // TODO: how to write to addresses exceeding 32 bit? Find solution.
-      .mst_aw_addr_i( usb_dma_dw_req.aw.addr ),
-      .mst_ar_addr_i( usb_dma_dw_req.ar.addr ),
+      .mst_aw_addr_i( addr_t'(usb_dma_dw_req.aw.addr) ),
+      .mst_ar_addr_i( addr_t'(usb_dma_dw_req.ar.addr) ),
       .mst_req_o    ( axi_in_req[AxiIn.usb] ),
       .mst_resp_i   ( axi_in_rsp[AxiIn.usb] )
     );
@@ -1647,6 +1647,10 @@ module cheshire_soc import cheshire_pkg::*; #(
       .ctrl_reset               ( rst_ni                 )
     );
 
+  end
+
+  if (!(Cfg.Usb && Cfg.BusErr)) begin : gen_usb_bus_err_tie
+    assign intr.intn.bus_err.usb = '0;
   end
 
   ///////////
