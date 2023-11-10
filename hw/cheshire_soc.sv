@@ -1423,29 +1423,30 @@ module cheshire_soc import cheshire_pkg::*; #(
 
     axi_usb_ctrl_ser_req_t usb_ctrl_ser_req;
     axi_usb_ctrl_ser_rsp_t usb_ctrl_ser_rsp;
-
-    axi_id_serialize #(
-      .AxiSlvPortMaxTxns      ( 1 /* TODO */ ),
-      .AxiMstPortMaxUniqIds   ( 1 /* TODO */ ),
-      .AxiMstPortMaxTxnsPerId ( 1 /* TODO */ ),
-      .AxiSlvPortIdWidth      ( AxiSlvIdWidth ),
-      .AxiMstPortIdWidth      ( 8 ),
-      .AxiAddrWidth           ( Cfg.AddrWidth ),
-      .AxiDataWidth           ( Cfg.AxiDataWidth ),
-      .AxiUserWidth           ( Cfg.AxiUserWidth ),
-      .AtopSupport            ( 0 /* filtered above */ ),
-      .slv_req_t              ( axi_slv_req_t ),
-      .slv_resp_t             ( axi_slv_rsp_t ),
-      .mst_req_t              ( axi_usb_ctrl_ser_req_t ),
-      .mst_resp_t             ( axi_usb_ctrl_ser_rsp_t )
-    ) i_usb_ctrl_id_serialize (
-      .clk_i,
-      .rst_ni,
-      .slv_req_i  ( usb_cut_req ),
-      .slv_resp_o ( usb_cut_rsp ),
-      .mst_req_o  ( usb_ctrl_ser_req ),
-      .mst_resp_i ( usb_ctrl_ser_rsp )
-    );
+    
+    axi_iw_converter #(
+    .AxiSlvPortIdWidth      ( AxiSlvIdWidth ),
+    .AxiMstPortIdWidth      ( 8 ),
+    .AxiSlvPortMaxUniqIds   ( 1 /* TODO */ ),
+    .AxiSlvPortMaxTxnsPerId ( 1 /* TODO */ ),
+    .AxiSlvPortMaxTxns      ( 1 /* TODO */ ),
+    .AxiMstPortMaxUniqIds   ( 1 /* TODO */ ),
+    .AxiMstPortMaxTxnsPerId ( 1 /* TODO */ ),
+    .AxiAddrWidth           ( Cfg.AddrWidth ),
+    .AxiDataWidth           ( Cfg.AxiDataWidth ),
+    .AxiUserWidth           ( Cfg.AxiUserWidth ),
+    .slv_req_t              ( axi_slv_req_t ),
+    .slv_resp_t             ( axi_slv_rsp_t ),
+    .mst_req_t              ( axi_usb_ctrl_ser_req_t ),
+    .mst_resp_t             ( axi_usb_ctrl_ser_rsp_t )
+  ) i_usb_ctrl_iw_converter (
+    .clk_i,
+    .rst_ni,
+    .slv_req_i  ( usb_cut_req ),
+    .slv_resp_o ( usb_cut_rsp ),
+    .mst_req_o  ( usb_ctrl_ser_req ),
+    .mst_resp_i ( usb_ctrl_ser_rsp )
+  );
 
     axi_usb_ctrl_dw_req_t usb_ctrl_dw_req;
     axi_usb_ctrl_dw_rsp_t usb_ctrl_dw_rsp;
@@ -1642,9 +1643,9 @@ module cheshire_soc import cheshire_pkg::*; #(
       .io_usb_0_dm_write        ( usb_dm_o               ),
       .io_usb_0_dm_writeEnable  ( usb_dm_en_o            ),
       .phy_clk                  ( clk_i                  ),
-      .phy_reset                ( rst_ni                 ),
+      .phy_reset                ( rst_i                  ),
       .ctrl_clk                 ( clk_i                  ),
-      .ctrl_reset               ( rst_ni                 )
+      .ctrl_reset               ( rst_i                  )
     );
 
   end
