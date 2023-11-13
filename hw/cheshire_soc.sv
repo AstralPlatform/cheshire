@@ -98,12 +98,12 @@ module cheshire_soc import cheshire_pkg::*; #(
   output logic [Cfg.VgaGreenWidth-1:0]  vga_green_o,
   output logic [Cfg.VgaBlueWidth -1:0]  vga_blue_o,
   // USB interface
-  output logic  usb_dm_o,
-  input  logic  usb_dm_i,
-  output logic  usb_dm_en_o,
-  output logic  usb_dp_o,
-  input  logic  usb_dp_i,
-  output logic  usb_dp_en_o
+  (* dont_touch = "yes" *) (* mark_debug = "true" *) output logic  usb_dm_o,
+  (* dont_touch = "yes" *) (* mark_debug = "true" *) input  logic  usb_dm_i,
+  (* dont_touch = "yes" *) (* mark_debug = "true" *) output logic  usb_dm_en_o,
+  (* dont_touch = "yes" *) (* mark_debug = "true" *) output logic  usb_dp_o,
+  (* dont_touch = "yes" *) (* mark_debug = "true" *) input  logic  usb_dp_i,
+  (* dont_touch = "yes" *) (* mark_debug = "true" *) output logic  usb_dp_en_o
 );
 
   `include "axi/typedef.svh"
@@ -111,12 +111,18 @@ module cheshire_soc import cheshire_pkg::*; #(
   `include "common_cells/assertions.svh"
   `include "cheshire/typedef.svh"
 
+  `define ila(__name, __signal)  \
+  (* dont_touch = "yes" *) (* mark_debug = "true" *) logic [$bits(__signal)-1:0] __name; \
+  assign __name = __signal;
+
+  //`ila(ila_ready, axiin[cfg.Usb].aw_ready);
+
+
   // Declare interface types internally
   `CHESHIRE_TYPEDEF_ALL(, Cfg)
 
   //////////////////
-  //  Interrupts  //
-  //////////////////
+  //  Interrupts  .usb  //////////////////
 
   localparam int unsigned NumIntHarts     = Cfg.NumCores;
   localparam int unsigned NumIrqHarts     = NumIntHarts + Cfg.NumExtIrqHarts;
@@ -1488,7 +1494,7 @@ module cheshire_soc import cheshire_pkg::*; #(
     ) i_usb_ctrl_modify_address (
       .slv_req_i    ( usb_ctrl_dw_req ),
       .slv_resp_o   ( usb_ctrl_dw_rsp ),
-      .mst_aw_addr_i( usb_ctrl_dw_req.aw.addr[11:0] ), // Could not be correct, leave it for now
+      .mst_aw_addr_i( usb_ctrl_dw_req.aw.addr[11:0] ),
       .mst_ar_addr_i( usb_ctrl_dw_req.ar.addr[11:0] ),
       .mst_req_o    ( usb_ctrl_req ),
       .mst_resp_i   ( usb_ctrl_rsp )
@@ -1544,28 +1550,22 @@ module cheshire_soc import cheshire_pkg::*; #(
     // Tie unconnected AXI IO
     always_comb begin
       // Ctrl connections
-      //usb_ctrl_req.aw.user  = Cfg.AxiUserDefault;
-      //usb_ctrl_req.w.user   = Cfg.AxiUserDefault;
-      //usb_ctrl_req.ar.user  = Cfg.AxiUserDefault;
-      //usb_ctrl_rsp.r.user   = Cfg.AxiUserDefault;
-      //usb_ctrl_rsp.b.user   = Cfg.AxiUserDefault;
+      usb_ctrl_rsp.r.user   = Cfg.AxiUserDefault;
+      usb_ctrl_rsp.b.user   = Cfg.AxiUserDefault;
       // DMA connections
-      //usb_dma_req.aw.id     = 0;
-      //usb_dma_req.aw.burst  = 0;
-      //usb_dma_req.aw.lock   = 0;
-      //usb_dma_req.aw.qos    = 0;
-      //usb_dma_req.aw.region = 0;
-      //usb_dma_req.aw.user   = Cfg.AxiUserDefault;
-      //usb_dma_req.w.user    = Cfg.AxiUserDefault;
-      //usb_dma_req.ar.id     = 0;
-      //usb_dma_req.ar.burst  = 0;
-      //usb_dma_req.ar.qos    = 0;
-      //usb_dma_req.ar.region = 0;
-      //usb_dma_req.ar.user   = Cfg.AxiUserDefault;
-      //usb_dma_rsp.r.id      = 0;
-      //usb_dma_rsp.r.user    = Cfg.AxiUserDefault;
-      //usb_dma_rsp.b.id      = 0;
-      //usb_dma_rsp.b.user    = Cfg.AxiUserDefault;
+      usb_dma_req.aw.id     = '0;
+      usb_dma_req.aw.burst  = axi_pkg::BURST_INCR;
+      usb_dma_req.aw.lock   = 0;
+      usb_dma_req.aw.qos    = '0;
+      usb_dma_req.aw.region = '0;
+      usb_dma_req.aw.atop   = '0;
+      usb_dma_req.aw.user   = Cfg.AxiUserDefault;
+      usb_dma_req.w.user    = Cfg.AxiUserDefault;
+      usb_dma_req.ar.id     = '0;
+      usb_dma_req.ar.burst  = axi_pkg::BURST_INCR;
+      usb_dma_req.ar.qos    = '0;
+      usb_dma_req.ar.region = '0;
+      usb_dma_req.ar.user   = Cfg.AxiUserDefault;
     end
 
     UsbOhciAxi4 i_usb (
@@ -1635,7 +1635,7 @@ module cheshire_soc import cheshire_pkg::*; #(
       .io_ctrl_r_payload_id     ( usb_ctrl_rsp.r.id      ),
       .io_ctrl_r_payload_resp   ( usb_ctrl_rsp.r.resp    ),
       .io_ctrl_r_payload_last   ( usb_ctrl_rsp.r.last    ),
-      .io_interrupt             ( /*intr.intn.usb*/          ),
+      .io_interrupt             ( /*intr.intn.usb*/      ),
       .io_usb_0_dp_read         ( usb_dp_i               ),
       .io_usb_0_dp_write        ( usb_dp_o		           ),
       .io_usb_0_dp_writeEnable  ( usb_dp_en_o            ),
@@ -1643,9 +1643,9 @@ module cheshire_soc import cheshire_pkg::*; #(
       .io_usb_0_dm_write        ( usb_dm_o               ),
       .io_usb_0_dm_writeEnable  ( usb_dm_en_o            ),
       .phy_clk                  ( clk_i                  ),
-      .phy_reset                ( rst_i                  ),
+      .phy_reset                ( !rst_ni                ),
       .ctrl_clk                 ( clk_i                  ),
-      .ctrl_reset               ( rst_i                  )
+      .ctrl_reset               ( !rst_ni                )
     );
 
   end
