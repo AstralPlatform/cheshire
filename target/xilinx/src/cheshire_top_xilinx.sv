@@ -66,8 +66,20 @@ module cheshire_top_xilinx
   output logic        vga_vs
 
   // USB output wires
-
+//  output logic  usb_dm_o,
+//  input logic  usb_dm_i,
+//  output logic  usb_dm_en_o,
+//  output logic  usb_dp_o,
+//  input logic  usb_dp_i,
+//  output logic  usb_dp_en_o
 );
+
+  logic  usb_dm_o,
+  logic  usb_dm_i,
+  logic  usb_dm_en_o,
+  logic  usb_dp_o,
+  logic  usb_dp_i,
+  logic  usb_dp_en_o
 
   // Configure cheshire for FPGA mapping
   localparam cheshire_cfg_t FPGACfg = '{
@@ -550,7 +562,13 @@ module cheshire_top_xilinx
     .vga_vsync_o        ( vga_vs          ),
     .vga_red_o          ( vga_r           ),
     .vga_green_o        ( vga_g           ),
-    .vga_blue_o         ( vga_b           )
+    .vga_blue_o         ( vga_b           ),
+    .usb_dm_o,
+    .usb_dm_i,
+    .usb_dm_en_o,
+    .usb_dp_o,
+    .usb_dp_i,
+    .usb_dp_en_o
   );
 
 endmodule
