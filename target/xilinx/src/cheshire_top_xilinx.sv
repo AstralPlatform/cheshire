@@ -74,12 +74,12 @@ module cheshire_top_xilinx
 //  output logic  usb_dp_en_o
 );
 
-  logic  usb_dm_o,
-  logic  usb_dm_i,
-  logic  usb_dm_en_o,
-  logic  usb_dp_o,
-  logic  usb_dp_i,
-  logic  usb_dp_en_o
+  logic  usb_dm_o;
+  logic  usb_dm_i;
+  logic  usb_dm_en_o;
+  logic  usb_dp_o;
+  logic  usb_dp_i;
+  logic  usb_dp_en_o;
 
   // Configure cheshire for FPGA mapping
   localparam cheshire_cfg_t FPGACfg = '{
