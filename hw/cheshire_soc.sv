@@ -111,18 +111,13 @@ module cheshire_soc import cheshire_pkg::*; #(
   `include "common_cells/assertions.svh"
   `include "cheshire/typedef.svh"
 
-  `define ila(__name, __signal)  \
-  (* dont_touch = "yes" *) (* mark_debug = "true" *) logic [$bits(__signal)-1:0] __name; \
-  assign __name = __signal;
-
-  //`ila(ila_ready, axiin[cfg.Usb].aw_ready);
-
 
   // Declare interface types internally
   `CHESHIRE_TYPEDEF_ALL(, Cfg)
 
   //////////////////
-  //  Interrupts  .usb  //////////////////
+  //  Interrupts  //
+  //////////////////
 
   localparam int unsigned NumIntHarts     = Cfg.NumCores;
   localparam int unsigned NumIrqHarts     = NumIntHarts + Cfg.NumExtIrqHarts;
@@ -1483,8 +1478,8 @@ module cheshire_soc import cheshire_pkg::*; #(
       .mst_resp_i ( usb_ctrl_dw_rsp )
     );
 
-    axi_usb_ctrl_req_t usb_ctrl_req;
-    axi_usb_ctrl_rsp_t usb_ctrl_rsp;
+    axi_usb_ctrl_req_t usb_ctrl_req, usb_ctrl_cut_req;
+    axi_usb_ctrl_rsp_t usb_ctrl_rsp, usb_ctrl_cut_rsp;
 
     axi_modify_address #(
       .slv_req_t  ( axi_usb_ctrl_dw_req_t ),
@@ -1499,6 +1494,25 @@ module cheshire_soc import cheshire_pkg::*; #(
       .mst_req_o    ( usb_ctrl_req ),
       .mst_resp_i   ( usb_ctrl_rsp )
     );
+
+    axi_cut #(
+      .Bypass     ( ~Cfg.UsbConfAmoPostCut ),
+      .aw_chan_t  ( axi_usb_ctrl_aw_chan_t ),
+      .w_chan_t   ( axi_usb_ctrl_w_chan_t  ),
+      .b_chan_t   ( axi_usb_ctrl_b_chan_t  ),
+      .ar_chan_t  ( axi_usb_ctrl_ar_chan_t ),
+      .r_chan_t   ( axi_usb_ctrl_r_chan_t  ),
+      .axi_req_t  ( axi_usb_ctrl_req_t ),
+      .axi_resp_t ( axi_usb_ctrl_rsp_t )
+    ) i_usb_ctrl_cut (
+      .clk_i,
+      .rst_ni,
+      .slv_req_i  ( usb_ctrl_req ),
+      .slv_resp_o ( usb_ctrl_rsp ),
+      .mst_req_o  ( usb_ctrl_cut_req ),
+      .mst_resp_i ( usb_ctrl_cut_rsp )
+    );
+
 
     axi_usb_dma_req_t usb_dma_req;
     axi_usb_dma_rsp_t usb_dma_rsp;
@@ -1550,8 +1564,8 @@ module cheshire_soc import cheshire_pkg::*; #(
     // Tie unconnected AXI IO
     always_comb begin
       // Ctrl connections
-      usb_ctrl_rsp.r.user   = Cfg.AxiUserDefault;
-      usb_ctrl_rsp.b.user   = Cfg.AxiUserDefault;
+      usb_ctrl_cut_rsp.r.user   = Cfg.AxiUserDefault;
+      usb_ctrl_cut_rsp.b.user   = Cfg.AxiUserDefault;
       // DMA connections
       usb_dma_req.aw.id     = '0;
       usb_dma_req.aw.burst  = axi_pkg::BURST_INCR;
@@ -1596,45 +1610,45 @@ module cheshire_soc import cheshire_pkg::*; #(
       .io_dma_r_payload_data    ( usb_dma_rsp.r.data     ),
       .io_dma_r_payload_resp    ( usb_dma_rsp.r.resp     ),
       .io_dma_r_payload_last    ( usb_dma_rsp.r.last     ),
-      .io_ctrl_aw_valid         ( usb_ctrl_req.aw_valid  ),
-      .io_ctrl_aw_ready         ( usb_ctrl_rsp.aw_ready  ),
-      .io_ctrl_aw_payload_addr  ( usb_ctrl_req.aw.addr   ),
-      .io_ctrl_aw_payload_id    ( usb_ctrl_req.aw.id     ),
-      .io_ctrl_aw_payload_region( usb_ctrl_req.aw.region ),
-      .io_ctrl_aw_payload_len   ( usb_ctrl_req.aw.len    ),
-      .io_ctrl_aw_payload_size  ( usb_ctrl_req.aw.size   ),
-      .io_ctrl_aw_payload_burst ( usb_ctrl_req.aw.burst  ),
-      .io_ctrl_aw_payload_lock  ( usb_ctrl_req.aw.lock   ),
-      .io_ctrl_aw_payload_cache ( usb_ctrl_req.aw.cache  ),
-      .io_ctrl_aw_payload_qos   ( usb_ctrl_req.aw.qos    ),
-      .io_ctrl_aw_payload_prot  ( usb_ctrl_req.aw.prot   ),
-      .io_ctrl_w_valid          ( usb_ctrl_req.w_valid   ),
-      .io_ctrl_w_ready          ( usb_ctrl_rsp.w_ready   ),
-      .io_ctrl_w_payload_data   ( usb_ctrl_req.w.data    ),
-      .io_ctrl_w_payload_strb   ( usb_ctrl_req.w.strb    ),
-      .io_ctrl_w_payload_last   ( usb_ctrl_req.w.last    ),
-      .io_ctrl_b_valid          ( usb_ctrl_rsp.b_valid   ),
-      .io_ctrl_b_ready          ( usb_ctrl_req.b_ready   ),
-      .io_ctrl_b_payload_id     ( usb_ctrl_rsp.b.id      ),
-      .io_ctrl_b_payload_resp   ( usb_ctrl_rsp.b.resp    ),
-      .io_ctrl_ar_valid         ( usb_ctrl_req.ar_valid  ),
-      .io_ctrl_ar_ready         ( usb_ctrl_rsp.ar_ready  ),
-      .io_ctrl_ar_payload_addr  ( usb_ctrl_req.ar.addr   ),
-      .io_ctrl_ar_payload_id    ( usb_ctrl_req.ar.id     ),
-      .io_ctrl_ar_payload_region( usb_ctrl_req.ar.region ),
-      .io_ctrl_ar_payload_len   ( usb_ctrl_req.ar.len    ),
-      .io_ctrl_ar_payload_size  ( usb_ctrl_req.ar.size   ),
-      .io_ctrl_ar_payload_burst ( usb_ctrl_req.ar.burst  ),
-      .io_ctrl_ar_payload_lock  ( usb_ctrl_req.ar.lock   ),
-      .io_ctrl_ar_payload_cache ( usb_ctrl_req.ar.cache  ),
-      .io_ctrl_ar_payload_qos   ( usb_ctrl_req.ar.qos    ),
-      .io_ctrl_ar_payload_prot  ( usb_ctrl_req.ar.prot   ),
-      .io_ctrl_r_valid          ( usb_ctrl_rsp.r_valid   ),
-      .io_ctrl_r_ready          ( usb_ctrl_req.r_ready   ),
-      .io_ctrl_r_payload_data   ( usb_ctrl_rsp.r.data    ),
-      .io_ctrl_r_payload_id     ( usb_ctrl_rsp.r.id      ),
-      .io_ctrl_r_payload_resp   ( usb_ctrl_rsp.r.resp    ),
-      .io_ctrl_r_payload_last   ( usb_ctrl_rsp.r.last    ),
+      .io_ctrl_aw_valid         ( usb_ctrl_cut_req.aw_valid  ),
+      .io_ctrl_aw_ready         ( usb_ctrl_cut_rsp.aw_ready  ),
+      .io_ctrl_aw_payload_addr  ( usb_ctrl_cut_req.aw.addr   ),
+      .io_ctrl_aw_payload_id    ( usb_ctrl_cut_req.aw.id     ),
+      .io_ctrl_aw_payload_region( usb_ctrl_cut_req.aw.region ),
+      .io_ctrl_aw_payload_len   ( usb_ctrl_cut_req.aw.len    ),
+      .io_ctrl_aw_payload_size  ( usb_ctrl_cut_req.aw.size   ),
+      .io_ctrl_aw_payload_burst ( usb_ctrl_cut_req.aw.burst  ),
+      .io_ctrl_aw_payload_lock  ( usb_ctrl_cut_req.aw.lock   ),
+      .io_ctrl_aw_payload_cache ( usb_ctrl_cut_req.aw.cache  ),
+      .io_ctrl_aw_payload_qos   ( usb_ctrl_cut_req.aw.qos    ),
+      .io_ctrl_aw_payload_prot  ( usb_ctrl_cut_req.aw.prot   ),
+      .io_ctrl_w_valid          ( usb_ctrl_cut_req.w_valid   ),
+      .io_ctrl_w_ready          ( usb_ctrl_cut_rsp.w_ready   ),
+      .io_ctrl_w_payload_data   ( usb_ctrl_cut_req.w.data    ),
+      .io_ctrl_w_payload_strb   ( usb_ctrl_cut_req.w.strb    ),
+      .io_ctrl_w_payload_last   ( usb_ctrl_cut_req.w.last    ),
+      .io_ctrl_b_valid          ( usb_ctrl_cut_rsp.b_valid   ),
+      .io_ctrl_b_ready          ( usb_ctrl_cut_req.b_ready   ),
+      .io_ctrl_b_payload_id     ( usb_ctrl_cut_rsp.b.id      ),
+      .io_ctrl_b_payload_resp   ( usb_ctrl_cut_rsp.b.resp    ),
+      .io_ctrl_ar_valid         ( usb_ctrl_cut_req.ar_valid  ),
+      .io_ctrl_ar_ready         ( usb_ctrl_cut_rsp.ar_ready  ),
+      .io_ctrl_ar_payload_addr  ( usb_ctrl_cut_req.ar.addr   ),
+      .io_ctrl_ar_payload_id    ( usb_ctrl_cut_req.ar.id     ),
+      .io_ctrl_ar_payload_region( usb_ctrl_cut_req.ar.region ),
+      .io_ctrl_ar_payload_len   ( usb_ctrl_cut_req.ar.len    ),
+      .io_ctrl_ar_payload_size  ( usb_ctrl_cut_req.ar.size   ),
+      .io_ctrl_ar_payload_burst ( usb_ctrl_cut_req.ar.burst  ),
+      .io_ctrl_ar_payload_lock  ( usb_ctrl_cut_req.ar.lock   ),
+      .io_ctrl_ar_payload_cache ( usb_ctrl_cut_req.ar.cache  ),
+      .io_ctrl_ar_payload_qos   ( usb_ctrl_cut_req.ar.qos    ),
+      .io_ctrl_ar_payload_prot  ( usb_ctrl_cut_req.ar.prot   ),
+      .io_ctrl_r_valid          ( usb_ctrl_cut_rsp.r_valid   ),
+      .io_ctrl_r_ready          ( usb_ctrl_cut_req.r_ready   ),
+      .io_ctrl_r_payload_data   ( usb_ctrl_cut_rsp.r.data    ),
+      .io_ctrl_r_payload_id     ( usb_ctrl_cut_rsp.r.id      ),
+      .io_ctrl_r_payload_resp   ( usb_ctrl_cut_rsp.r.resp    ),
+      .io_ctrl_r_payload_last   ( usb_ctrl_cut_rsp.r.last    ),
       .io_interrupt             ( /*intr.intn.usb*/      ),
       .io_usb_0_dp_read         ( usb_dp_i               ),
       .io_usb_0_dp_write        ( usb_dp_o		           ),
@@ -1647,6 +1661,60 @@ module cheshire_soc import cheshire_pkg::*; #(
       .ctrl_clk                 ( clk_i                  ),
       .ctrl_reset               ( !rst_ni                )
     );
+
+
+    // USB Valid/Ready signals added to ILA
+    `define ila(__name, __signal)  \
+    (* dont_touch = "yes" *) (* mark_debug = "true" *) logic [$bits(__signal)-1:0] __name; \
+    assign __name = __signal;
+
+    // USB DMA ILA crossbar side
+    `ila(ila_xbar_dma_aw_ready, axi_in_rsp[AxiIn.usb].aw_ready);
+    `ila(ila_xbar_dma_aw_valid, axi_in_req[AxiIn.usb].aw_valid);
+    `ila(ila_xbar_dma_w_ready, axi_in_rsp[AxiIn.usb].w_ready);
+    `ila(ila_xbar_dma_w_valid, axi_in_req[AxiIn.usb].w_valid);
+    `ila(ila_xbar_dma_b_ready, axi_in_req[AxiIn.usb].b_ready);
+    `ila(ila_xbar_dma_b_valid, axi_in_rsp[AxiIn.usb].b_valid);
+    `ila(ila_xbar_dma_ar_ready, axi_in_rsp[AxiIn.usb].ar_ready);
+    `ila(ila_xbar_dma_ar_valid, axi_in_req[AxiIn.usb].ar_valid);
+    `ila(ila_xbar_dma_r_ready, axi_in_req[AxiIn.usb].r_ready);
+    `ila(ila_xbar_dma_r_valid, axi_in_rsp[AxiIn.usb].r_valid);
+
+    // USB DMA ILA host side
+    `ila(ila_host_dma_aw_ready, usb_dma_rsp.aw_ready);
+    `ila(ila_host_dma_aw_valid, usb_dma_req.aw_valid);
+    `ila(ila_host_dma_w_ready, usb_dma_rsp.w_ready);
+    `ila(ila_host_dma_w_valid, usb_dma_req.w_valid);
+    `ila(ila_host_dma_b_ready, usb_dma_req.b_ready);
+    `ila(ila_host_dma_b_valid, usb_dma_rsp.b_valid);
+    `ila(ila_host_dma_ar_ready, usb_dma_rsp.ar_ready);
+    `ila(ila_host_dma_ar_valid, usb_dma_req.ar_valid);
+    `ila(ila_host_dma_r_ready, usb_dma_req.r_ready);
+    `ila(ila_host_dma_r_valid, usb_dma_rsp.r_valid);
+
+    // USB CTRL ILA crossbar side
+    `ila(ila_xbar_ctrl_aw_ready, axi_out_rsp[AxiOut.usb].aw_ready);
+    `ila(ila_xbar_ctrl_aw_valid, axi_out_req[AxiOut.usb].aw_valid);
+    `ila(ila_xbar_ctrl_w_ready, axi_out_rsp[AxiOut.usb].w_ready);
+    `ila(ila_xbar_ctrl_w_valid, axi_out_req[AxiOut.usb].w_valid);
+    `ila(ila_xbar_ctrl_b_ready, axi_out_req[AxiOut.usb].b_ready);
+    `ila(ila_xbar_ctrl_b_valid, axi_out_rsp[AxiOut.usb].b_valid);
+    `ila(ila_xbar_ctrl_ar_ready, axi_out_rsp[AxiOut.usb].ar_ready);
+    `ila(ila_xbar_ctrl_ar_valid, axi_out_req[AxiOut.usb].ar_valid);
+    `ila(ila_xbar_ctrl_r_ready, axi_out_req[AxiOut.usb].r_ready);
+    `ila(ila_xbar_ctrl_r_valid, axi_out_rsp[AxiOut.usb].r_valid);
+
+    // USB CTRL ILA crossbar side
+    `ila(ila_host_ctrl_aw_ready, usb_ctrl_cut_rsp.aw_ready);
+    `ila(ila_host_ctrl_aw_valid, usb_ctrl_cut_req.aw_valid);
+    `ila(ila_host_ctrl_w_ready, usb_ctrl_cut_rsp.w_ready);
+    `ila(ila_host_ctrl_w_valid, usb_ctrl_cut_req.w_valid);
+    `ila(ila_host_ctrl_b_ready, usb_ctrl_cut_req.b_ready);
+    `ila(ila_host_ctrl_b_valid, usb_ctrl_cut_rsp.b_valid);
+    `ila(ila_host_ctrl_ar_ready, usb_ctrl_cut_rsp.ar_ready);
+    `ila(ila_host_ctrl_ar_valid, usb_ctrl_cut_req.ar_valid);
+    `ila(ila_host_ctrl_r_ready, usb_ctrl_cut_req.r_ready);
+    `ila(ila_host_ctrl_r_valid, usb_ctrl_cut_rsp.r_valid);
 
   end
 
