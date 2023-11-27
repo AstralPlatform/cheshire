@@ -63,7 +63,7 @@ module cheshire_top_xilinx
 
   // VGA Sync signals
   output logic        vga_hs,
-  output logic        vga_vs
+  output logic        vga_vs,
 
   // USB output wires
 //  output logic  usb_dm_o,
@@ -72,6 +72,8 @@ module cheshire_top_xilinx
 //  output logic  usb_dp_o,
 //  input logic  usb_dp_i,
 //  output logic  usb_dp_en_o
+  inout wire          usb_dp,
+  inout wire          usb_dm
 );
 
   logic  usb_dm_o;
@@ -427,6 +429,18 @@ module cheshire_top_xilinx
   assign spi_sd_soc_in[2] = 1'b0;
   assign spi_sd_soc_in[3] = 1'b0;
 
+
+  /////////////////////////
+  // USB I/O Connections //
+  /////////////////////////
+
+  assign usb_dp = usb_dp_en_o ? usb_dp_o : 'z;
+  assign usb_dp_i = usb_dp;
+
+  assign usb_dm = usb_dm_en_o ? usb_dm_o : 'z;
+  assign usb_dm_i = usb_dm;
+
+  
 
   /////////////////////////
   // "RTC" Clock Divider //
