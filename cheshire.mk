@@ -155,7 +155,7 @@ CHS_SIM_ALL += $(CHS_ROOT)/target/sim/models/24FC1025.v
 CHS_SIM_ALL += $(CHS_ROOT)/target/sim/vsim/compile.cheshire_soc.tcl
 
 #############
-# Emulation #
+# FPGA Flow #
 #############
 
 include $(CHS_ROOT)/target/xilinx/xilinx.mk

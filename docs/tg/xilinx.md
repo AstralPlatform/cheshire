@@ -11,59 +11,46 @@ We currently provide working setups for:
 
 We are working on support for more boards in the future.
 
-## Building the bistream
-
-Do to the structure of the Makefile flow. All the following commands are to be executed at the root of the Cheshire repository. If you want to see the targets that you will be using, you can find them in `sw/sw.mk` and `target/xilinx/xilinx.mk`.
-
-First, make sure that you have generated all the RTL:
-
-```bash
-make chs-hw-all
-```
+## Implementation
 
 Generate the bitstream `target/xilinx/out/cheshire_top_xilinx.bit` by running:
 
-```bash
+```
 make chs-xil-all [VIVADO=version] [BOARD={genesys2,vcu128}] [MODE={batch,gui}] [INT-JTAG={0,1}]
 ```
 
-See the argument list below:
+The following environment variables control bitstream generation:
 
-| Argument | Relevance | Description                                                                                                                           |
-|----------|-----------|---------------------------------------------------------------------------------------------------------------------------------------|
-| VIVADO   | all       | Vivado command to use **(default "vitis-2020.2 vivado")**                                                                             |
-| BOARD    | all       | `genesys-2` **(default)** <br>`vcu128`                                                                                                |
-| INT-JTAG | vcu128    | `0` Connect the RV debug module to an external JTAG chain<br>`1` Connect the RV debug module to the internal JTAG chain **(default)** |
-| MODE     | all       | `batch` Compile in Vivado shell<br>`gui` Compile in Vivado gui                                                                        |
+| Variable   | Applies to | Description                                                     |
+|------------|------------|-----------------------------------------------------------------|
+| `VIVADO`   | all        | Vivado binary to use (default: `vitis-2020.2 vivado`)           |
+| `BOARD`    | all        | `genesys-2` (default) or `vcu128`                               |
+| `INT-JTAG` | vcu128     | Connect to internal (`1`, default) or external (`0`) JTAG chain |
+| `MODE`     | all        | Compile in Vivado shell (`batch`, default) or GUI (`gui`)       |
 
-The build time takes a couple of hours.
-
-The above target used Bender and the file `Bender.yml` to generate the filelist required for Vivado. You can find it in 
-
-## Board specificities
+Since available features vary between boards, we provide further documentation for each.
 
 ### Digilent Genesys 2
-> ##### Bootmode and switches
-> 
-> Before flashing the bitstream to your device, take note of the position of onboard switches, which control important functionality:
-> 
-> 
->   | Switch | Function                                        |
->   | ------ | ------------------------------------------------|
->   | 1 .. 0 | Boot mode; see [Boot ROM](../um/sw.md#boot-rom) |
->   | 5 .. 2 | Fan level; *do not* keep at 0                   |
->   | 7      | Test mode; *leave at zero*                      |
-> 
-> The reset, JTAG TAP, UART, I2C, and VGA are all connected to their onboard logic or ports. The UART has *no flow control*. The microSD slot is connected to chip select 0 of the SPI host peripheral. Serial link and GPIOs are currently not available.
-> 
+
+Before flashing the bitstream to your device, take note of the position of onboard switches, which control important functionality:
+
+  | Switch | Function                                        |
+  | ------ | ------------------------------------------------|
+  | 1 .. 0 | Boot mode; see [Boot ROM](../um/sw.md#boot-rom) |
+  | 5 .. 2 | Fan level; *do not* keep at 0                   |
+  | 7      | Test mode; *leave at zero*                      |
+
+The reset, JTAG TAP, UART, I2C, and VGA are all connected to their onboard logic or ports. The UART has *no flow control*. The microSD slot is connected to chip select 0 of the SPI host peripheral. Serial link and GPIOs are currently not available.
+
 ### Xilinx VCU128
-> #### Bootmode and VIOs
-> 
-> As there are no switches on this board, the CVA6 bootmode (see [Boot ROM](../um/sw.md#boot-rom)) is selected by Xilinx VIOs that can be set in the Vivado GUI (see [Using Vivado GUI](#bringup_vivado_gui)).
-> 
-> #### External JTAG chain
-> 
-> The VCU128 development board only provides one JTAG chain, used by Vivado to program the bitstream, and interact with certain IPs (ILAs, VIOs, ...). The RV64 host also requires a JTAG chain to connect GDB to the debug-module in the bitstream. It is possible to use the same JTAG chain for both by using `INT-JTAG=1`. In this case no external cable is required but it will not be possible to use GDB (to debug the program running on the host) and communicate with the bitstream (to debug signals using ILAs) at the same time. By using `INT-JTAG=0` it is possible to add an external JTAG chain for the RV64 host through GPIOs. Since the VCU128 does not have GPIOs we use we use a Digilent JTAG-HS2 cable connected to the Xilinx XM105 FMC debug card. See the connections in `vcu128.xdc`.
+
+Since there are no switches on this board, the boot mode is selected by Xilinx VIOs that can be set through Vivado; see [Using Vivado GUI](#bringup_vivado_gui).
+
+The board provides an internal JTAG chain used by Vivado to program the bitstream and interact with some IPs like ILAs and VIOs. The RISC-V debug transport module (DTM) also requires a JTAG chain to attach a debugger.
+
+When `INT-JTAG` is `1`, both Vivado and the DTM share a JTAG chain; in this case, no additional cable is required, but it will not be possible to simultaneously communicate with the CVA6 cores and the bitstream.
+
+When `INT-JTAG` is `0`, the DTM uses a separate chain mapped to GPIOs; since the VCU128 does not have GPIOs, we use we use a Digilent JTAG-HS2 cable connected to the Xilinx XM105 FMC debug card as configured in `vcu128.xdc`.
 
 ## Bare-metal bringup 
 
@@ -149,7 +136,7 @@ continue
 
 You should see `Hello World!` output printed on the UART.
 
-### Load from SD Card (Genesys2) <a name="bringup_flash_sd"></a>
+### Boot from SD Card
 
 First, build an up-to-date a disk image for your desired binary. For `helloworld`:
 
@@ -166,15 +153,15 @@ sudo sgdisk -e /dev/<sdcard>
 
 The second command only ensures correctness of the partition layout; it moves the secondary GPT header at the end of the minimally sized image to the end of your actual SD card.
 
-Insert your SD card and reset into __boot mode 1__. You should see a `Hello World!` UART output.
+Insert your SD card and reset into boot mode 1. You should see a `Hello World!` UART output.
 
 ## Booting Linux
 
 To boot Linux, we must load the *OpenSBI* firmware, which takes over M mode and launches the U-boot bootloader. U-boot then loads Linux. For more details, see [Boot Flow](../um/sw.md#boot-flow).
 
-Clone the `cheshire` branch of CVA6 SDK into `sw/deps/cva6-sdk` and build the firmware (OpenSBI + U-boot) and Linux images (*this will take about 30 minutes*):
+Clone the `cheshire` branch of CVA6 SDK and build the firmware (OpenSBI + U-boot) and Linux images (*this will take about 30 minutes*):
 
-```bash
+```
 git submodule update --init --recursive sw/deps/cva6-sdk
 make -C sw/deps/cva6-sdk images
 ```
@@ -185,38 +172,38 @@ In this case, OpenSBI is loaded by a regular baremetal program called the [Zero-
 
 To create a full Linux disk image from the ZSL, device tree, firmware, and Linux, run:
 
-```bash
+```
 # Note that the device tree's flavor depends on the board (see sw/boot/*.dts)
 make chs-linux-img BOARD=[genesys2, vcu128]
 ```
 
 ### Digilent Genesys 2
-> 
-> Flash this image to an SD card as for the hello world (see [Load from SD Card](#bringup_flash_sd)), then insert the SD card and reset into boot mode 1. You should first see the ZSL print on the UART:
-> 
-> ```
->  /\___/\       Boot mode:       1
-> ( o   o )      Real-time clock: ... Hz
-> (  =^=  )      System clock:    ... Hz
-> (        )     Read global ptr: 0x...
-> (    P    )    Read pointer:    0x...
-> (  U # L   )   Read argument:   0x...
-> (    P      )
-> (           ))))))))))
-> ```
-> You should then boot through OpenSBI, U-Boot, and Linux until you are dropped into a shell.
-> 
+
+Flash this image to an SD card as for the hello world (see [Load from SD Card](#bringup_flash_sd)), then insert the SD card and reset into boot mode 1. You should first see the ZSL print on the UART:
+
+```
+ /\___/\       Boot mode:       1
+( o   o )      Real-time clock: ... Hz
+(  =^=  )      System clock:    ... Hz
+(        )     Read global ptr: 0x...
+(    P    )    Read pointer:    0x...
+(  U # L   )   Read argument:   0x...
+(    P      )
+(           ))))))))))
+```
+You should then boot through OpenSBI, U-Boot, and Linux until you are dropped into a shell.
+
 ### Xilinx VCU128
-> 
-> This board does not offer a SD card reader. We need to load the image in the integrated flash:
-> 
-> ```
-> make chs-xil-flash MODE=batch BOARD=vcu128
-> ```
-> 
-> Use the parameters defined in [Using command line](#bringup_vivado_cli) (defaults are in `target/xilinx/xilinx.mk`) to select your board:
->
-> This script will erase your bitstream, once the flash has been written (c.a. 10min) you will need to re-program the bitstream on the board.
+
+This board does not offer a SD card reader. We need to load the image in the integrated flash:
+
+```
+make chs-xil-flash MODE=batch BOARD=vcu128
+```
+
+Use the parameters defined in [Using command line](#bringup_vivado_cli) (defaults are in `target/xilinx/xilinx.mk`) to select your board:
+
+This script will erase your bitstream, once the flash has been written (c.a. 10min) you will need to re-program the bitstream on the board.
 
 ## Add your own board
 
