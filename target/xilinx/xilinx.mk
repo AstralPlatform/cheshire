@@ -76,7 +76,7 @@ chs_xilinx_defs  := $(chs_xilinx_defs_$(chs_xilinx_flavor))
 # Note: at the moment xilinx_ips uses vivado_env defined above,
 # but it could re-define its own vivado_env and xilinx_targs
 include $(CHS_XIL_IPS_DIR)/xilinx_ips.mk
-
+cheshire
 #
 # Top level compile rules
 #
@@ -93,7 +93,7 @@ chs-xil-vanilla-genesys2: $(CHS_XIL_DIR)/out/cheshire_vanilla_genesys2.bit
 # Program bitstream (XILINX_BOARD)
 chs-xil-program:
 	@echo "Programming board $(chs_xilinx_board) ($(xilinx_part))"
-	$(chs_vivado_env) $(VIVADO) $(VIVADO_FLAGS) xilinx_bit=$(chs_xilinx_bit) -source $(CHS_XIL_DIR)/scripts/program.tcl
+	$(chs_vivado_env) xilinx_bit=$(CHS_XIL_DIR)/out/cheshire_$(chs_xilinx_flavor)_$(chs_xilinx_board).bit $(VIVADO) $(VIVADO_FLAGS) -source $(CHS_XIL_DIR)/scripts/program.tcl
 
 chs-xil-program-vanilla-genesys2: $(CHS_XIL_DIR)/out/cheshire_vanilla_genesys2.bit
 	${MAKE} chs_xilinx_flavor=vanilla chs_xilinx_board=genesys2 chs-xil-program
